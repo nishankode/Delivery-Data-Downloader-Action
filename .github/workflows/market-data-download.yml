@@ -1,0 +1,36 @@
+name: Daily Market Data Download
+
+on:
+  schedule:
+    # Runs at 16:30 UTC (10:00 PM IST) every day
+    - cron: '30 16 * * *'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  download_data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pandas shutil zipfile
+
+    - name: Run data download script
+      run: python app.py
+
+    - name: Upload generated data
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: market-data-${{ github.run_number }}
+        path: '*.zip'
+        retention-days: 7
